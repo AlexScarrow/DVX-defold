@@ -19,9 +19,6 @@
 	
 		margin:0;
 		padding:0;
-		width: 100%;
-		height: 100%;
-		overflow: hidden;
 	}
 
 	.canvas-app-container {
@@ -44,7 +41,6 @@
 		border: 0;
 		width: 100%;
 		vertical-align: bottom;
-		touch-action: none;
 	}
 
 	#canvas-container {
@@ -125,7 +121,6 @@
 		background-color: #ffffff;
 		width: 100%;
 		height: 42px;
-		display: none;
 	}
 
 	body {
@@ -192,14 +187,6 @@
 			runningFromFileWarning.style.display = "block";
 		}
 		else {
-			var canvas = document.getElementById("canvas");
-			// Keep input bound to canvas and prevent browser gestures from stealing wheel/touch input.
-			canvas.addEventListener("mousedown", function() { canvas.focus(); }, { passive: true });
-			canvas.addEventListener("touchstart", function() { canvas.focus(); }, { passive: true });
-			canvas.addEventListener("wheel", function(e) { e.preventDefault(); }, { passive: false });
-			document.addEventListener("gesturestart", function(e) { e.preventDefault(); }, { passive: false });
-			document.addEventListener("gesturechange", function(e) { e.preventDefault(); }, { passive: false });
-			document.addEventListener("gestureend", function(e) { e.preventDefault(); }, { passive: false });
 			EngineLoader.load("canvas", "DerplesvsXenos");
 			runningFromFileWarning.parentNode.removeChild(runningFromFileWarning);
 		}

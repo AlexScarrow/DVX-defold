@@ -1,8 +1,8 @@
 {
   "project_git" : {
-    "sha1" : "a57f9186762dc9e5dd3c4279d6dd5977002982ac",
+    "sha1" : "5883c50397c16acc4d2a3b2cb4aa054bcf17617e",
     "origin" : "https://github.com/AlexScarrow/DVX-defold.git",
-    "branch" : "feature/polish-pass-2"
+    "branch" : "fix/html5-input-mapping"
   },
   "bob_arguments" : {
     "sha1" : "7c81792859a6da7f7401c0ac37a4cc83bb500ff6",

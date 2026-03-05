@@ -3081,7 +3081,7 @@ get_fixed_viewport_rect = function()
     if not ok_size or not win_w or not win_h or win_w <= 0 or win_h <= 0 then
         return 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 1
     end
-    local scale = math.min(1, win_w / SCREEN_WIDTH, win_h / SCREEN_HEIGHT)
+    local scale = math.min(win_w / SCREEN_WIDTH, win_h / SCREEN_HEIGHT)
     if scale <= 0 then
         return 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 1
     end
@@ -3096,7 +3096,19 @@ map_window_input_to_logical = function(screen_x, screen_y)
     if not screen_x or not screen_y then
         return nil, nil, false
     end
-    return screen_x, screen_y, true
+    local view_x, view_y, view_w, view_h = get_fixed_viewport_rect()
+    if not view_w or not view_h or view_w <= 0 or view_h <= 0 then
+        return screen_x, screen_y, true
+    end
+    local local_x = screen_x - view_x
+    local local_y = screen_y - view_y
+    local inside_view = (local_x >= 0 and local_x <= view_w and local_y >= 0 and local_y <= view_h)
+    if not inside_view then
+        return nil, nil, false
+    end
+    local logical_x = (local_x / view_w) * SCREEN_WIDTH
+    local logical_y = (local_y / view_h) * SCREEN_HEIGHT
+    return logical_x, logical_y, true
 end
 
 enforce_fixed_window_size = function(self, dt, force_now)
