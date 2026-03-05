@@ -1,0 +1,13 @@
+{
+  "project_git" : {
+    "sha1" : "a57f9186762dc9e5dd3c4279d6dd5977002982ac",
+    "origin" : "https://github.com/AlexScarrow/DVX-defold.git",
+    "branch" : "feature/polish-pass-2"
+  },
+  "bob_arguments" : {
+    "sha1" : "7c81792859a6da7f7401c0ac37a4cc83bb500ff6",
+    "version" : "1.11.0",
+    "timestamp" : "2025-09-04 12:54:20"
+  },
+  "defold_sdk" : "7c81792859a6da7f7401c0ac37a4cc83bb500ff6"
+}
