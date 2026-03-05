@@ -3099,9 +3099,19 @@ map_window_input_to_logical = function(screen_x, screen_y)
         return nil, nil, false
     end
     if IS_HTML5 then
-        -- On HTML5, Defold action.x/action.y are canvas-local logical coordinates.
-        local inside_view = screen_x >= 0 and screen_x <= SCREEN_WIDTH and screen_y >= 0 and screen_y <= SCREEN_HEIGHT
-        return screen_x, screen_y, inside_view
+        local view_x, view_y, view_w, view_h = get_fixed_viewport_rect()
+        if not view_w or not view_h or view_w <= 0 or view_h <= 0 then
+            return screen_x, screen_y, true
+        end
+        local local_x = screen_x - view_x
+        local local_y = screen_y - view_y
+        local inside_view = (local_x >= 0 and local_x <= view_w and local_y >= 0 and local_y <= view_h)
+        if not inside_view then
+            return nil, nil, false
+        end
+        local logical_x = (local_x / view_w) * SCREEN_WIDTH
+        local logical_y = (local_y / view_h) * SCREEN_HEIGHT
+        return logical_x, logical_y, true
     end
     local view_x, view_y, view_w, view_h = get_fixed_viewport_rect()
     if not view_w or not view_h or view_w <= 0 or view_h <= 0 then
@@ -7270,6 +7280,13 @@ function on_input(self, action_id, action)
     if action_id == hash("touch") then
         local raw_x = action.x
         local raw_y = action.y
+        if IS_HTML5 then
+            local sx, sy, s_inside = map_window_input_to_logical(action.screen_x, action.screen_y)
+            if s_inside and sx and sy then
+                raw_x = action.screen_x
+                raw_y = action.screen_y
+            end
+        end
         local input_x, input_y, inside_view = map_window_input_to_logical(raw_x, raw_y)
         if (self.game_flow_state or FLOW_STATE_GAME) ~= FLOW_STATE_GAME then
             if action.released and inside_view and input_x and input_y then
@@ -7402,6 +7419,13 @@ function on_input(self, action_id, action)
         local target_zoom = math.min(self.camera_zoom + 0.1, self.camera_max_zoom)
         local raw_x = action.x
         local raw_y = action.y
+        if IS_HTML5 then
+            local sx, sy, s_inside = map_window_input_to_logical(action.screen_x, action.screen_y)
+            if s_inside and sx and sy then
+                raw_x = action.screen_x
+                raw_y = action.screen_y
+            end
+        end
         local focus_x, focus_y, inside_view = map_window_input_to_logical(raw_x, raw_y)
         if not inside_view then
             focus_x = SCREEN_WIDTH * 0.5
@@ -7417,6 +7441,13 @@ function on_input(self, action_id, action)
         local target_zoom = math.max(self.camera_zoom - 0.1, self.camera_min_zoom)
         local raw_x = action.x
         local raw_y = action.y
+        if IS_HTML5 then
+            local sx, sy, s_inside = map_window_input_to_logical(action.screen_x, action.screen_y)
+            if s_inside and sx and sy then
+                raw_x = action.screen_x
+                raw_y = action.screen_y
+            end
+        end
         local focus_x, focus_y, inside_view = map_window_input_to_logical(raw_x, raw_y)
         if not inside_view then
             focus_x = SCREEN_WIDTH * 0.5
