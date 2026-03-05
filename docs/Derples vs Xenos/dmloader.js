@@ -79,9 +79,9 @@ var CUSTOM_PARAMETERS = {
         var innerWidth = window.innerWidth;
         var innerHeight = window.innerHeight;
 
-        // Keep a strict 1280x720 surface and center it in the browser viewport.
-        app_container.style.marginLeft = Math.max(0, (innerWidth - width) * 0.5) + "px";
-        app_container.style.marginTop = Math.max(0, (innerHeight - height) * 0.5) + "px";
+        // Keep a strict 1280x720 surface anchored at top-left to avoid pointer-space offset.
+        app_container.style.marginLeft = "0px";
+        app_container.style.marginTop = "0px";
         app_container.style.width = width + "px";
         app_container.style.height = height + "px";
 
