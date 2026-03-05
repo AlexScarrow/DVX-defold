@@ -1,6 +1,6 @@
 {
   "project_git" : {
-    "sha1" : "79decab5c513230a350a5e70d515170917cd9957",
+    "sha1" : "b777a64411460de56b761af634b0c822d59f8b00",
     "origin" : "https://github.com/AlexScarrow/DVX-defold.git",
     "branch" : "fix/html5-input-mapping"
   },

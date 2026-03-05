@@ -3099,8 +3099,9 @@ map_window_input_to_logical = function(screen_x, screen_y)
         return nil, nil, false
     end
     if IS_HTML5 then
-        -- HTML5 input from Defold is already in game-space coordinates for the canvas.
-        return screen_x, screen_y, true
+        -- On HTML5, Defold action.x/action.y are canvas-local logical coordinates.
+        local inside_view = screen_x >= 0 and screen_x <= SCREEN_WIDTH and screen_y >= 0 and screen_y <= SCREEN_HEIGHT
+        return screen_x, screen_y, inside_view
     end
     local view_x, view_y, view_w, view_h = get_fixed_viewport_rect()
     if not view_w or not view_h or view_w <= 0 or view_h <= 0 then
