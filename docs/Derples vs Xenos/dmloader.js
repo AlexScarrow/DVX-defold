@@ -119,12 +119,14 @@ var CUSTOM_PARAMETERS = {
     
     
     
+        // Keep HTML5 input coordinates aligned to game logical pixels.
+        // Using devicePixelRatio here can desync click/touch positions in some browsers.
         var dpi = 1;
-    
-        dpi = window.devicePixelRatio || 1;
     
         app_container.style.width = width + "px";
         app_container.style.height = height + buttonHeight + "px";
+        game_canvas.style.width = width + "px";
+        game_canvas.style.height = height + "px";
         game_canvas.width = Math.floor(width * dpi);
         game_canvas.height = Math.floor(height * dpi);
     }
