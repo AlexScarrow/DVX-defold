@@ -116,11 +116,15 @@ AESTHETIC_BUTTON_H = 30
 AESTHETIC_BUTTON_Z = 0.845
 ENTRY_FIRE_OFFSET_X = -50
 ENTRY_FIRE_OFFSET_Y = -60
-ENTRY_FIRE_Z = 0.015 -- Match swirling_clouds1 world-FX depth behavior
+ENTRY_FIRE_Z = 0.08 -- Above entry tile base visuals while still below UI layers
 ENTRY_FIRE_ROTATION_DEG = -20
 EXIT_GREEN_SMOKE_Z = 0.56
 EXIT_GREEN_SMOKE_CELL3_BOTTOM_OFFSET_X = 0
 EXIT_GREEN_SMOKE_CELL3_BOTTOM_OFFSET_Y = -(CELL_HEIGHT * 0.5) + 15
+BOARDGAME_PLACEHOLDER_PROP_OFFSET_X = 0
+BOARDGAME_PLACEHOLDER_PROP_OFFSET_Y = 200
+BOARDGAME_PLACEHOLDER_PROP_SCALE = 0.5625
+BOARDGAME_PLACEHOLDER_PROP_Z = 0.03 -- Keep safely visible above backdrop/room base tiles
 local LOOT_UI, COMMAND_UI, COMPONENT_UI = (function()
     local cfg = require("main.config").create_ui_config(UI_PANEL_X, UI_PANEL_Y, UI_PANEL_W, UI_PANEL_H)
     return cfg.LOOT_UI, cfg.COMMAND_UI, cfg.COMPONENT_UI
@@ -207,7 +211,7 @@ AESTHETIC_PROFILES = {
         backdrop_tile_rows = 15,
         backdrop_tile_art_w = 256,
         backdrop_tile_art_h = 256,
-        backdrop_tile_scale = 1,
+        backdrop_tile_scale = 1.25,
         backdrop_tint = vmath.vector4(1, 1, 1, 1),
         backdrop_pan_speed_x = 0,
         backdrop_pan_speed_y = 0,
@@ -3976,6 +3980,7 @@ local function initialize_unit_ui(self)
         flow_score_title_button = nil,
         flow_title_solo_button = nil,
         flow_title_multiplayer_button = nil,
+        boardgame_placeholder_prop = nil,
         flow_score_rows = {}
     }
 
@@ -4027,6 +4032,10 @@ local function initialize_unit_ui(self)
     self.ui.flow_score_title_button = create_ui_square(0, 0, FLOW_UI_BUTTON_Z, vmath.vector4(0, 0, 0, 0), 250, 56)
     self.ui.flow_title_solo_button = create_ui_square(0, 0, FLOW_UI_BUTTON_Z, vmath.vector4(0, 0, 0, 0), 280, 70)
     self.ui.flow_title_multiplayer_button = create_ui_square(0, 0, FLOW_UI_BUTTON_Z, vmath.vector4(0, 0, 0, 0), 280, 70)
+    self.ui.boardgame_placeholder_prop = factory.create("/loot_marker_factory#loot_marker_factory", vmath.vector3(-9999, -9999, 0.86))
+    if self.ui.boardgame_placeholder_prop then
+        msg.post(msg.url(nil, self.ui.boardgame_placeholder_prop, "sprite"), "play_animation", { id = hash("boardGame_prop_dice1") })
+    end
     for i = 1, 4 do
         self.ui.flow_score_rows[i] = create_ui_square(0, 0, FLOW_UI_PANEL_Z, vmath.vector4(0, 0, 0, 0), 300, 28)
     end
@@ -4087,6 +4096,7 @@ local function set_ui_hidden(self)
     set_ui_square_transform(self, self.ui.flow_score_title_button, -9999, -9999, FLOW_UI_BUTTON_Z, hidden, 250, 56)
     set_ui_square_transform(self, self.ui.flow_title_solo_button, -9999, -9999, FLOW_UI_BUTTON_Z, hidden, 280, 70)
     set_ui_square_transform(self, self.ui.flow_title_multiplayer_button, -9999, -9999, FLOW_UI_BUTTON_Z, hidden, 280, 70)
+    set_ui_square_transform(self, self.ui.boardgame_placeholder_prop, -9999, -9999, 0.86, hidden, BOARDGAME_PLACEHOLDER_PROP_SCALE, BOARDGAME_PLACEHOLDER_PROP_SCALE)
     if self.ui.flow_score_rows then
         for _, row_id in ipairs(self.ui.flow_score_rows) do
             set_ui_square_transform(self, row_id, -9999, -9999, FLOW_UI_PANEL_Z, hidden, 300, 28)
@@ -4609,6 +4619,43 @@ function update_global_ui_buttons(self)
     )
 end
 
+update_boardgame_placeholder_prop = function(self, backdrop_center_x, backdrop_center_y, profile)
+    local prop_id = self.ui and self.ui.boardgame_placeholder_prop or nil
+    if not prop_id then
+        return
+    end
+    if self.aesthetic_mode ~= AESTHETIC_MODE_BOARDGAME or backdrop_center_x == nil or backdrop_center_y == nil then
+        go.set_position(vmath.vector3(-9999, -9999, BOARDGAME_PLACEHOLDER_PROP_Z), prop_id)
+        pcall(go.set, msg.url(nil, prop_id, "sprite"), "tint", vmath.vector4(0, 0, 0, 0))
+        return
+    end
+    local anchor_x = backdrop_center_x
+    local anchor_y = backdrop_center_y
+    local selected_level = self.level_library and self.level_library[self.current_level_index or 1] or nil
+    if selected_level then
+        for _, placement in ipairs(selected_level) do
+            if placement and placement.tile == "entry" and placement.x and placement.y then
+                local ex, ey = coords_to_world_pos(placement.x + 1, placement.y + 1)
+                anchor_x = ex
+                anchor_y = ey
+                break
+            end
+        end
+    end
+    local tile_scale_base = (profile and profile.backdrop_tile_scale) or 1
+    local scale = BOARDGAME_PLACEHOLDER_PROP_SCALE * tile_scale_base
+    go.set_position(
+        vmath.vector3(
+            anchor_x + BOARDGAME_PLACEHOLDER_PROP_OFFSET_X,
+            anchor_y + BOARDGAME_PLACEHOLDER_PROP_OFFSET_Y,
+            BOARDGAME_PLACEHOLDER_PROP_Z
+        ),
+        prop_id
+    )
+    go.set_scale(vmath.vector3(scale, scale, 1), prop_id)
+    pcall(go.set, msg.url(nil, prop_id, "sprite"), "tint", vmath.vector4(1, 1, 1, 1))
+end
+
 get_aesthetic_profile = function(self)
     local mode = self.aesthetic_mode or AESTHETIC_MODE_BOARDGAME
     return AESTHETIC_PROFILES[mode] or AESTHETIC_PROFILES[AESTHETIC_MODE_BOARDGAME]
@@ -4756,7 +4803,7 @@ apply_computer_emissive_accents = function(self, dt)
         if apply_off_human_proximity_rule and not powered then
             local n = tonumber(instance_key) or 0
             self.tile_off_proximity_mul_state = self.tile_off_proximity_mul_state or {}
-            local target_mul = nearby_human_tile_instances[n] and 1 or 0.5
+            local target_mul = nearby_human_tile_instances[n] and 1 or 0
             local current_mul = self.tile_off_proximity_mul_state[n]
             if current_mul == nil then
                 current_mul = target_mul
@@ -4797,6 +4844,14 @@ apply_computer_emissive_accents = function(self, dt)
         end
     end
 
+    if self.tile_base_objects then
+        for tile_instance_id, tile_go in pairs(self.tile_base_objects) do
+            local powered = self.tile_light_power_state and self.tile_light_power_state[tile_instance_id] == true
+            local tint = get_instance_tint(tile_instance_id, powered, true)
+            pcall(go.set, msg.url(nil, tile_go, "sprite"), "tint", vmath.vector4(tint.x, tint.y, tint.z, TILE_OPACITY))
+        end
+    end
+
     for cell_id, marker_id in pairs(machine_objects or {}) do
         local tint = get_instance_tint(cell_id, true)
         pcall(go.set, msg.url(nil, marker_id, "sprite"), "tint", tint)
@@ -4805,7 +4860,12 @@ apply_computer_emissive_accents = function(self, dt)
     if self.power_node_objects then
         for cell_id, marker_id in pairs(self.power_node_objects) do
             local powered = self.power_node_power_state and self.power_node_power_state[cell_id] == true
-            local tint = get_instance_tint(cell_id, powered)
+            local cell = self.world_grid and self.world_grid[cell_id] or nil
+            local tile_instance_id = cell and cell.tileInstanceId or 0
+            local tint = get_instance_tint(tile_instance_id, powered, true)
+            if not powered then
+                tint = vmath.vector4(tint.x, tint.y, tint.z, tint.x)
+            end
             pcall(go.set, msg.url(nil, marker_id, "sprite"), "tint", tint)
         end
     end
@@ -6488,11 +6548,12 @@ end
                 end
             end
 
-            if placement.tile ~= "entry" then
+            if placement.tile ~= "entry" and (placement.y or 0) > 8 then
                 -- Exterior details are only for truly exposed silhouettes:
                 -- roof: no overlapping tile anywhere above; left wall: no overlapping tile anywhere to the left.
                 local has_tile_above = false
                 local has_tile_left = false
+                local has_tile_right = false
                 local p_left = placement.x - 1
                 local p_right = placement.x + 1
                 local p_bottom = placement.y - 1
@@ -6511,7 +6572,10 @@ end
                         if (not has_tile_left) and overlaps_y and scan.x < placement.x then
                             has_tile_left = true
                         end
-                        if has_tile_above and has_tile_left then
+                        if (not has_tile_right) and overlaps_y and scan.x > placement.x then
+                            has_tile_right = true
+                        end
+                        if has_tile_above and has_tile_left and has_tile_right then
                             break
                         end
                     end
@@ -6542,6 +6606,20 @@ end
                         msg.post(msg.url(nil, left_wall_id, "sprite"), "play_animation", { id = hash("exterior_leftWall1") })
                         go.set(msg.url(nil, left_wall_id, "sprite"), "tint", vmath.vector4(1, 1, 1, 1))
                         table.insert(tile_objects, left_wall_id)
+                    end
+                end
+                if not has_tile_right then
+                    local right_wall_id = factory.create(
+                        "/tile_factory#tile_factory",
+                        vmath.vector3(center_x + (CELL_WIDTH * 3), center_y, 0.02),
+                        nil,
+                        {},
+                        vmath.vector3(visual_scale, visual_scale, 1)
+                    )
+                    if right_wall_id then
+                        msg.post(msg.url(nil, right_wall_id, "sprite"), "play_animation", { id = hash("exterior_rightWall1") })
+                        go.set(msg.url(nil, right_wall_id, "sprite"), "tint", vmath.vector4(1, 1, 1, 1))
+                        table.insert(tile_objects, right_wall_id)
                     end
                 end
             end
@@ -7099,6 +7177,9 @@ function update(self, dt)
                 end
             end
         end
+        update_boardgame_placeholder_prop(self, bx, by, profile)
+    else
+        update_boardgame_placeholder_prop(self, nil, nil, nil)
     end
     update_backdrop_cloud_fx(self)
     if self.table_sweep_shadow_overlay then

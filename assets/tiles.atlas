@@ -74,6 +74,9 @@ images {
   image: "/assets/images/material_unit.png"
 }
 images {
+  image: "/assets/images/boardGame_prop_dice1.png"
+}
+images {
   image: "/assets/images/med_unit.png"
 }
 images {
@@ -168,6 +171,9 @@ images {
 }
 images {
   image: "/assets/images/exterior_leftWall1.png"
+}
+images {
+  image: "/assets/images/exterior_rightWall1.png"
 }
 images {
   image: "/assets/images/exterior_roof1.png"
