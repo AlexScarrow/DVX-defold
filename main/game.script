@@ -18,7 +18,7 @@ local CELL_HEIGHT = 150         -- Height of each cell in pixels
 local GRID_COLS = 15            -- Number of columns in worldGrid
 local GRID_ROWS = 15            -- Number of rows in worldGrid
 local TILE_SIZE = 3             -- Tiles are 3x3 cells
-window = require("window")
+local window = rawget(_G, "window") or {}
 
 -- Screen dimensions
 local SCREEN_WIDTH = 1280
@@ -169,6 +169,7 @@ AESTHETIC_PROFILES = {
         backdrop_anim = "backdrop_computer",
         backdrop_tiled = false,
         backdrop_scale = 3,
+        backdrop_scale_x = 3.6,
         backdrop_align_bottom_world_y = 958,
         backdrop_tint = vmath.vector4(1, 1, 1, 1),
         backdrop_emissive_enabled = true,
@@ -7120,8 +7121,10 @@ function update(self, dt)
         local by = backdrop_cam_y + (self.world_backdrop_base_offset_y or 0) + (self.world_backdrop_pan_y or 0)
         if self.world_backdrop then
             local backdrop_scale = (profile and profile.backdrop_scale) or 1
-            local sx = (SCREEN_WIDTH / (self.world_backdrop_art_w or 256)) * backdrop_scale
-            local sy = (SCREEN_HEIGHT / (self.world_backdrop_art_h or 256)) * backdrop_scale
+            local backdrop_scale_x = (profile and profile.backdrop_scale_x) or backdrop_scale
+            local backdrop_scale_y = (profile and profile.backdrop_scale_y) or backdrop_scale
+            local sx = (SCREEN_WIDTH / (self.world_backdrop_art_w or 256)) * backdrop_scale_x
+            local sy = (SCREEN_HEIGHT / (self.world_backdrop_art_h or 256)) * backdrop_scale_y
             local final_by = by
             local align_bottom_world_y = profile and profile.backdrop_align_bottom_world_y
             if align_bottom_world_y == nil and profile and profile.backdrop_align_to_lowest_tile_floor == true and self.world_grid then
