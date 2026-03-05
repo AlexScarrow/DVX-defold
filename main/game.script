@@ -7261,7 +7261,9 @@ end
 
 function on_input(self, action_id, action)
     if action_id == hash("touch") then
-        local input_x, input_y, inside_view = map_window_input_to_logical(action.x, action.y)
+        local raw_x = action.screen_x or action.x
+        local raw_y = action.screen_y or action.y
+        local input_x, input_y, inside_view = map_window_input_to_logical(raw_x, raw_y)
         if (self.game_flow_state or FLOW_STATE_GAME) ~= FLOW_STATE_GAME then
             if action.released and inside_view and input_x and input_y then
                 handle_flow_touch(self, input_x, input_y)
@@ -7391,7 +7393,9 @@ function on_input(self, action_id, action)
             return true
         end
         local target_zoom = math.min(self.camera_zoom + 0.1, self.camera_max_zoom)
-        local focus_x, focus_y, inside_view = map_window_input_to_logical(action.x, action.y)
+        local raw_x = action.screen_x or action.x
+        local raw_y = action.screen_y or action.y
+        local focus_x, focus_y, inside_view = map_window_input_to_logical(raw_x, raw_y)
         if not inside_view then
             focus_x = SCREEN_WIDTH * 0.5
             focus_y = SCREEN_HEIGHT * 0.5
@@ -7404,7 +7408,9 @@ function on_input(self, action_id, action)
             return true
         end
         local target_zoom = math.max(self.camera_zoom - 0.1, self.camera_min_zoom)
-        local focus_x, focus_y, inside_view = map_window_input_to_logical(action.x, action.y)
+        local raw_x = action.screen_x or action.x
+        local raw_y = action.screen_y or action.y
+        local focus_x, focus_y, inside_view = map_window_input_to_logical(raw_x, raw_y)
         if not inside_view then
             focus_x = SCREEN_WIDTH * 0.5
             focus_y = SCREEN_HEIGHT * 0.5
