@@ -6147,28 +6147,48 @@ local function update_human_movement(self, dt)
 end
 
 local function get_clicked_unit_in_cell(self, cell_id, world_x, world_y)
-    local units_in_cell = get_units_on_cell(self, cell_id)
-    if #units_in_cell == 0 then
-        return nil
+    local function get_best_unit_from_list(units)
+        local best_unit = nil
+        local best_dist = math.huge
+        for _, unit in ipairs(units or {}) do
+            if unit.go_path and (unit.current_health or 0) > 0 then
+                local pos = go.get_position(unit.go_path)
+                local dx = pos.x - world_x
+                local dy = pos.y - world_y
+                local dist = math.sqrt(dx * dx + dy * dy)
+                if dist < best_dist then
+                    best_dist = dist
+                    best_unit = unit
+                end
+            end
+        end
+        return best_unit, best_dist
     end
 
-    local best_unit = nil
-    local best_dist = math.huge
-    for _, unit in ipairs(units_in_cell) do
-        if unit.go_path and (unit.current_health or 0) > 0 then
-            local pos = go.get_position(unit.go_path)
-            local dx = pos.x - world_x
-            local dy = pos.y - world_y
-            local dist = math.sqrt(dx * dx + dy * dy)
-            if dist < best_dist then
-                best_dist = dist
-                best_unit = unit
-            end
+    local units_in_cell = get_units_on_cell(self, cell_id)
+    local cell_best_unit, cell_best_dist = get_best_unit_from_list(units_in_cell)
+
+    local all_units = {}
+    if self.squad_units then
+        for _, unit in pairs(self.squad_units) do
+            table.insert(all_units, unit)
+        end
+    end
+    local global_best_unit, global_best_dist = get_best_unit_from_list(all_units)
+
+    -- Prefer clicked-cell match by default, but allow a clearly closer global unit
+    -- to win when cell-id classification lands one cell off near boundaries.
+    local chosen_unit = cell_best_unit
+    local chosen_dist = cell_best_dist
+    if global_best_unit and global_best_dist < math.huge then
+        if not chosen_unit or global_best_dist <= (chosen_dist - 12) then
+            chosen_unit = global_best_unit
+            chosen_dist = global_best_dist
         end
     end
 
-    if best_dist <= UNIT_CLICK_SELECT_RADIUS then
-        return best_unit
+    if chosen_unit and chosen_dist <= UNIT_CLICK_SELECT_RADIUS then
+        return chosen_unit
     end
     return nil
 end
